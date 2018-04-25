@@ -78,8 +78,17 @@ group by staff.staff_id;
 select first_name, last_name, (select sum(amount) from payment
 	where staff.staff_id = payment.staff_id and payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00') as total_payment
 from staff;
-#6c
-
+#6c version with joins
+select title, count(actor_id) as actors_number from film
+join film_actor on film.film_id = film_actor.film_id group by film.film_id;
+#6c v.2 versiont with subqueries
+select title, (select count(actor_id) from film_actor where film.film_id = film_actor.film_id) as actors_number from film;
+#6d
+select count(film_id) as number_of_copies from inventory
+	where film_id = (
+		select film_id from film
+		where title = "Hunchback Impossible" 
+        );
 
 
 
@@ -87,6 +96,6 @@ from staff;
 select count(amount) from payment where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00';
 select * from payment ;
 select * from address;
-select * from staff;
+select * from inventory;
 select * from film;
 select * from film_actor;
