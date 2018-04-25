@@ -3,10 +3,12 @@ USE sakila;
 #1a
 select first_name, last_name from actor;
 #1b
+select upper(concat(first_name, ' ', last_name)) as actor_name from actor;
+#1b with adding a new column actor_name and dropping it
 ALTER TABLE actor
-add COLUMN Actor_name varchar(90) not null after last_name;
-UPDATE actor SET Actor_name = concat(first_name, ' ', last_name);
-update actor set Actor_name = upper(Actor_name);
+add COLUMN actor_name varchar(90) not null after last_name;
+UPDATE actor set actor_name = upper(concat(first_name, ' ', last_name));
+alter table actor drop COLUMN actor_name;
 
 #2a
 select actor_id, first_name, last_name from actor
@@ -61,9 +63,30 @@ CREATE TABLE `address` (
   CONSTRAINT `fk_address_city` FOREIGN KEY (`city_id`) REFERENCES `city` (`city_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=606 DEFAULT CHARSET=utf8;
 
+#6a
+select first_name, last_name, address.address from staff
+join address on address.address_id = staff.address_id;
+#6a v.2
+select first_name, last_name, (select address from address
+	where address.address_id = staff.address_id) as address
+from staff;
+#6b version with joins
+select first_name, last_name, sum(payment.amount) as total_payment from staff
+join payment on staff.staff_id = payment.staff_id where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00'
+group by staff.staff_id;
+#6b v.2 versiont with subqueries
+select first_name, last_name, (select sum(amount) from payment
+	where staff.staff_id = payment.staff_id and payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00') as total_payment
+from staff;
+#6c
 
 
 
 
-select * from country;
-select * from actor;
+
+select count(amount) from payment where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00';
+select * from payment ;
+select * from address;
+select * from staff;
+select * from film;
+select * from film_actor;
