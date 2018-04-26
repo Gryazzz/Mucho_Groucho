@@ -1,49 +1,65 @@
 USE sakila;
 
+
 #1a
 select first_name, last_name from actor;
+
 #1b
 select upper(concat(first_name, ' ', last_name)) as actor_name from actor;
+
 #1b with adding a new column actor_name and dropping it
 ALTER TABLE actor
 add COLUMN actor_name varchar(90) not null after last_name;
 UPDATE actor set actor_name = upper(concat(first_name, ' ', last_name));
 alter table actor drop COLUMN actor_name;
 
+
 #2a
 select actor_id, first_name, last_name from actor
-where first_name = "Joe";
+	where first_name = "Joe";
+
 #2b
 select actor_id, first_name, last_name from actor where last_name like "%GEN%"; 
+
 #2c
 select last_name, first_name from actor where last_name like "%LI%";
+
 #2d
 select country_id, country from country
-where country IN ("Afghanistan", "Bangladesh", "China");
+	where country IN ("Afghanistan", "Bangladesh", "China");
+
 
 #3a
 alter table actor add column middle_name varchar(45) not null after first_name;
+
 #3b
 alter TABLE actor modify column middle_name blob;
+
 #3c
 alter table actor drop COLUMN middle_name;
 
+
 #4a
 select last_name, count(last_name) as same_name_count from actor
-group by last_name;
+	group by last_name;
+
 #4b
 select last_name, count(last_name) as more_than_2 from actor
-group by last_name having more_than_2 >= 2;
+	group by last_name having more_than_2 >= 2;
+
 #4c
 #select  Actor_name, first_name, last_name from actor where Actor_name = "groucho williams"; #check the result
 update actor set first_name = "HARPO" where first_name = "GROUCHO";
 #update actor set Actor_name = "HARPO WILLIAMS" where Actor_name = "groucho williams";
+
 #4d
 update actor set first_name = if (first_name = "HARPO", "GROUCHO", if(first_name = "GROUCHO", "MUCHO GROUCHO",
-if(first_name = "MUCHO GROUCHO", "HARPO", first_name)));
+	if(first_name = "MUCHO GROUCHO", "HARPO", first_name)));
+
 #4d v.2
 update actor set first_name = case when first_name = "HARPO" then "GROUCHO" when first_name = "GROUCHO" then "MUCHO GROUCHO"
-when first_name = "MUCHO GROUCHO" then "HARPO" else first_name end;
+	when first_name = "MUCHO GROUCHO" then "HARPO" else first_name end;
+
 
 #5a
 show create table address;
@@ -63,39 +79,92 @@ CREATE TABLE `address` (
   CONSTRAINT `fk_address_city` FOREIGN KEY (`city_id`) REFERENCES `city` (`city_id`) ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=606 DEFAULT CHARSET=utf8;
 
+
 #6a
 select first_name, last_name, address.address from staff
-join address on address.address_id = staff.address_id;
+	join address on address.address_id = staff.address_id;
+
 #6a v.2
 select first_name, last_name, (select address from address
 	where address.address_id = staff.address_id) as address
-from staff;
+	from staff;
+
 #6b version with joins
 select first_name, last_name, sum(payment.amount) as total_payment from staff
-join payment on staff.staff_id = payment.staff_id where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00'
-group by staff.staff_id;
+	join payment on staff.staff_id = payment.staff_id where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00'
+	group by staff.staff_id;
+
 #6b v.2 versiont with subqueries
 select first_name, last_name, (select sum(amount) from payment
 	where staff.staff_id = payment.staff_id and payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00') as total_payment
-from staff;
+	from staff;
+
 #6c version with joins
 select title, count(actor_id) as actors_number from film
-join film_actor on film.film_id = film_actor.film_id group by film.film_id;
+	join film_actor on film.film_id = film_actor.film_id group by film.film_id;
+
 #6c v.2 versiont with subqueries
 select title, (select count(actor_id) from film_actor where film.film_id = film_actor.film_id) as actors_number from film;
+
 #6d
-select count(film_id) as number_of_copies from inventory
-	where film_id = (
+select count(*) as number_of_copies from inventory
+	where film_id in (
 		select film_id from film
-		where title = "Hunchback Impossible" 
+			where title = "Hunchback Impossible" 
         );
 
+#6e version with joins
+select first_name, last_name, sum(amount) as total_payment from payment 
+	join customer on payment.customer_id = customer.customer_id
+    GROUP BY payment.customer_id ORDER BY last_name;
+
+#6e v.2 versiont with subqueries
+select first_name, last_name,
+	(select sum(amount) from payment
+		where payment.customer_id = customer.customer_id) as total_payment
+from customer ORDER BY last_name;
 
 
+#7a
+select title from film
+	where title like "K%" OR title like "Q%" and language_id IN (
+		select language_id from language
+			where name = "English"
+    );
+
+#7b
+select first_name, last_name FROM actor
+	where actor_id in (
+		select actor_id from film_actor
+			where film_id in (
+				select film_id from film
+					where title = "Alone Trip"
+	));
+
+#7c version with joins
+select email from customer
+	inner join address on address.address_id = customer.address_id
+    inner join city on city.city_id = address.city_id
+    inner join country on country.country_id = city.country_id
+		where country = "Canada";
+
+#7c v.2 versiont with subqueries
+select email from customer
+	where address_id in (
+		select address_id from address
+			where city_id in (
+				select city_id from city
+					where country_id in (
+						select country_id from country
+							where country = "Canada"
+		)));
+
+
+			
 
 select count(amount) from payment where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00';
-select * from payment ;
-select * from address;
+select * from language ;
+select * from customer;
 select * from inventory;
 select * from film;
 select * from film_actor;
