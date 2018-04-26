@@ -175,14 +175,56 @@ SELECT title from film
 		));
 
 #7e
+select title, (
+	select count(*) from rental
+		where inventory_id in (
+			select inventory_id from inventory
+				where inventory.film_id = film.film_id
+			)) as rental_number
+	from film order by rental_number desc;
+    
+#7f
 
 
+#7g
+select store_id, (
+	SELECT city from city
+		where city_id in (
+			select city_id from address
+				where address.address_id = store.address_id
+		)) as city_name, (
+	select country from country
+			where country_id in (
+				select country_id from city
+					where city = city_name
+		)) as country_name
+	from store;
 
-			
+#7h
+select name as genre_name, (
+	select sum(amount) from payment
+		where rental_id in (
+			SELECT rental_id from rental
+				where inventory_id in (
+					select inventory_id from inventory
+						where film_id in (
+							select film_id from film_category
+								where film_category.category_id = category.category_id
+		)))) as genre_gross
+	from category ORDER BY genre_gross DESC limit 5;
 
-select count(amount) from payment where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00';
-select * from language ;
-select * from category;
-select * from inventory;
-select * from film;
-select * from film_category;
+
+#8a
+create view top_5_genres as
+select category.name as genre_name, sum(payment.amount) as genre_gross from payment
+		inner join rental on rental.rental_id = payment.rental_id
+        inner join inventory on inventory.inventory_id = rental.inventory_id
+        INNER join film_category on film_category.film_id = inventory.film_id
+        inner join category on category.category_id = film_category.category_id
+            group by genre_name order by genre_gross desc limit 5;
+
+#8b
+select * from top_5_genres;
+
+#8c
+drop view top_5_genres;
