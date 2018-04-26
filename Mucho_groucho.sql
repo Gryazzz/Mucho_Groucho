@@ -94,7 +94,7 @@ select first_name, last_name, sum(payment.amount) as total_payment from staff
 	join payment on staff.staff_id = payment.staff_id where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00'
 	group by staff.staff_id;
 
-#6b v.2 versiont with subqueries
+#6b v.2 version with subqueries
 select first_name, last_name, (select sum(amount) from payment
 	where staff.staff_id = payment.staff_id and payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00') as total_payment
 	from staff;
@@ -103,7 +103,7 @@ select first_name, last_name, (select sum(amount) from payment
 select title, count(actor_id) as actors_number from film
 	join film_actor on film.film_id = film_actor.film_id group by film.film_id;
 
-#6c v.2 versiont with subqueries
+#6c v.2 version with subqueries
 select title, (select count(actor_id) from film_actor where film.film_id = film_actor.film_id) as actors_number from film;
 
 #6d
@@ -118,7 +118,7 @@ select first_name, last_name, sum(amount) as total_payment from payment
 	join customer on payment.customer_id = customer.customer_id
     GROUP BY payment.customer_id ORDER BY last_name;
 
-#6e v.2 versiont with subqueries
+#6e v.2 version with subqueries
 select first_name, last_name,
 	(select sum(amount) from payment
 		where payment.customer_id = customer.customer_id) as total_payment
@@ -148,7 +148,7 @@ select email from customer
     inner join country on country.country_id = city.country_id
 		where country = "Canada";
 
-#7c v.2 versiont with subqueries
+#7c v.2 version with subqueries
 select email from customer
 	where address_id in (
 		select address_id from address
@@ -159,12 +159,30 @@ select email from customer
 							where country = "Canada"
 		)));
 
+#7d version with joins
+select title from film
+	inner join film_category on film.film_id =  film_category.film_id
+    inner join category on category.category_id = film_category.category_id
+    where category.name = "Family";
+
+#7d v.2 version with subqueries
+SELECT title from film
+	where film_id in (
+		select film_id from film_category
+			where category_id in (
+				select category_id from category
+					where name = "Family"
+		));
+
+#7e
+
+
 
 			
 
 select count(amount) from payment where payment_date > '2005-08-01 00:00:00' and payment_date < '2005-09-01 00:00:00';
 select * from language ;
-select * from customer;
+select * from category;
 select * from inventory;
 select * from film;
-select * from film_actor;
+select * from film_category;
